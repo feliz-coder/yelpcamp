@@ -6,7 +6,11 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
+const passport = require('passport');
+const localStrategy = require('passport-local');
+const User = require('./models/user');
 
+const userRouter = require('./routes/users')
 const campgroundRouter = require('./routes/campgrounds')
 const reviewRouter = require('./routes/reviews')
 
@@ -40,17 +44,32 @@ const sessionConfig = {
 }
 app.use(session(sessionConfig))
 app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
+    if (!['/login', '/'].includes(req.originalUrl)) {
+        req.session.returnTo = req.originalUrl;
+        console.log(req.session.id)
+    }
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next()
 })
 
+app.use('/', userRouter);
 app.use('/campgrounds', campgroundRouter);
 app.use('/campgrounds/:id/reviews', reviewRouter)
 
-
+app.get('/fakeUser', async (req, res) => {
+    const user = new User({ email: 'hello@gmail.com', username: 'hellooo' });
+    const newUser = await User.register(user, 'chicken');
+    res.send(newUser);
+})
 
 app.get('/', (req, res) => {
     res.render('home')
