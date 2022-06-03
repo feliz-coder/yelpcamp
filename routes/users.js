@@ -12,7 +12,7 @@ router.post('/register', catchAsync(async (req, res) => {
         const { username, email, password } = req.body;
         const user = new User({ username, email });
         const registeredUser = await User.register(user, password);
-        console.log(registeredUser);
+        // console.log(registeredUser);
         req.login(registeredUser, err => {
             if (err) return next(err);
             req.flash('success', 'Congrats! You just registered an account with Yelpcamp!');
