@@ -4,14 +4,10 @@ const catchAsync = require('../utils/catchAsync');
 const Campground = require('../models/campground');
 const { isLoggedIn, isAuthor, validateCampground } = require('../middleware');
 const Review = require('../models/review');
+const campgrounds = require('../controllers/campgrounds')
 
-router.get('/', catchAsync(async (req, res) => {
-    const campgrounds = await Campground.find({});
-    res.render('campgrounds/index', { campgrounds })
-}))
-router.get('/new', isLoggedIn, (req, res) => {
-    res.render('campgrounds/new');
-})
+router.get('/', catchAsync(campgrounds.index))
+router.get('/new', isLoggedIn, campgrounds.renderNewForm)
 router.get('/:id', catchAsync(async (req, res) => {
     const campground = await Campground.findById(req.params.id)
         .populate({
@@ -48,14 +44,6 @@ router.delete('/:id', isLoggedIn, isAuthor, catchAsync(async (req, res) => {
     req.flash('success', 'Successfully deleted a campground')
     res.redirect('/campgrounds');
 }))
-router.post('/', isLoggedIn, validateCampground, catchAsync(async (req, res, next) => {
-    // if (!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
-
-    const campground = new Campground(req.body.campground);
-    campground.author = req.user._id;
-    await campground.save();
-    req.flash('success', 'Successfully made a new campground')
-    res.redirect(`/campgrounds/${campground._id}`)
-}))
+router.post('/', isLoggedIn, validateCampground, catchAsync(campgrounds.createCampground))
 
 module.exports = router;

@@ -36,8 +36,8 @@ module.exports.validateCampground = (req, res, next) => {
     if (error) {
         const msg = error.details.map(el => el.message).join(',')
         throw new ExpressError(msg, 400)
-        next()
     } else {
+        next()
     }
 }
 
